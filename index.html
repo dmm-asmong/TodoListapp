@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Today Todo</title>
+    <style>
+        :root {
+            --bg1: #0b1220;
+            --bg2: #0f1b2e;
+            --card: rgba(255, 255, 255, 0.08);
+            --card2: rgba(255, 255, 255, 0.06);
+            --line: rgba(255, 255, 255, 0.14);
+            --text: rgba(255, 255, 255, 0.92);
+            --muted: rgba(255, 255, 255, 0.62);
+            --shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+            --radius: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            color: var(--text);
+            font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+            background:
+                radial-gradient(900px 600px at 15% 10%, rgba(79, 70, 229, 0.35), transparent 60%),
+                radial-gradient(900px 600px at 85% 20%, rgba(16, 185, 129, 0.25), transparent 60%),
+                radial-gradient(1000px 700px at 45% 90%, rgba(236, 72, 153, 0.18), transparent 55%),
+                linear-gradient(180deg, var(--bg1), var(--bg2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .wrap {
+            width: min(720px, 100%);
+            display: grid;
+            gap: 14px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px 18px 4px;
+        }
+
+        .title {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .title h1 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: -0.02em;
+        }
+
+        .title p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .badge {
+            padding: 8px 10px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .card {
+            background: linear-gradient(180deg, var(--card), var(--card2));
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            overflow: hidden;
+        }
+
+        .composer {
+            padding: 16px 16px 14px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .input svg {
+            opacity: .8;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            border: 0;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        .btn {
+            border: 0;
+            cursor: pointer;
+            padding: 12px 14px;
+            border-radius: 16px;
+            color: white;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 1), rgba(16, 185, 129, 1));
+            box-shadow: 0 12px 30px rgba(79, 70, 229, 0.25);
+            transition: transform .12s ease, filter .12s ease;
+        }
+
+        .btn:active {
+            transform: translateY(1px) scale(0.99);
+        }
+
+        .btn:hover {
+            filter: brightness(1.05);
+        }
+
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px 14px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .meta .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .ghost {
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--muted);
+            transition: background .12s ease, color .12s ease, transform .12s ease;
+        }
+
+        .ghost:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .ghost:active {
+            transform: translateY(1px);
+        }
+
+        ul {
+            list-style: none;
+            margin: 0;
+            padding: 8px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(0, 0, 0, 0.18);
+            position: relative;
+            overflow: hidden;
+            animation: pop .18s ease-out;
+        }
+
+        @keyframes pop {
+            from {
+                transform: translateY(6px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* 체크하면 사라지는 애니메이션 */
+        .item.removing {
+            animation: vanish .22s ease-in forwards;
+        }
+
+        @keyframes vanish {
+            to {
+                transform: translateX(10px);
+                opacity: 0;
+                height: 0;
+                margin: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+                border-width: 0;
+            }
+        }
+
+        .check {
+            width: 22px;
+            height: 22px;
+            border-radius: 9px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            background: rgba(255, 255, 255, 0.06);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            flex: 0 0 auto;
+            transition: transform .12s ease, background .12s ease;
+        }
+
+        .check:hover {
+            background: rgba(255, 255, 255, 0.10);
+        }
+
+        .check:active {
+            transform: scale(0.98);
+        }
+
+        .text {
+            flex: 1;
+            font-size: 15px;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+
+        .empty {
+            padding: 24px 16px 22px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 13px;
+        }
+
+        footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 12px;
+            padding: 4px 0 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="card">
+            <div class="topbar">
+                <div class="title">
+                    <h1>Today Todo</h1>
+                    <p>오늘 할 일을 적고, 완료하면 체크해서 없애세요.</p>
+                </div>
+                <div class="badge" id="todayLabel"></div>
+            </div>
+
+            <div class="composer">
+                <div class="input">
+                    <!-- 아이콘 -->
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M8 6h13M8 12h13M8 18h13" stroke="white" stroke-opacity="0.7" stroke-width="2"
+                            stroke-linecap="round" />
+                        <path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01" stroke="white" stroke-opacity="0.7" stroke-width="4"
+                            stroke-linecap="round" />
+                    </svg>
+                    <input id="todoInput" type="text" placeholder="예: 강의자료 10장 만들기" maxlength="120" />
+                </div>
+                <button class="btn" id="addBtn">추가</button>
+            </div>
+
+            <div class="meta">
+                <div>남은 할 일: <b id="count">0</b></div>
+                <div class="actions">
+                    <button class="ghost" id="clearBtn" title="모두 삭제">전체 삭제</button>
+                </div>
+            </div>
+
+            <ul id="list"></ul>
+            <div class="empty" id="empty" style="display:none;">오늘의 할 일이 비어 있어요. 한 가지라도 적어볼까요?</div>
+        </div>
+
+        <footer>Tip: Enter로 빠르게 추가할 수 있어요.</footer>
+    </div>
+
+    <script>
+        const STORAGE_KEY = "today_todos_v1";
+
+        const $ = (sel) => document.querySelector(sel);
+        const listEl = $("#list");
+        const inputEl = $("#todoInput");
+        const countEl = $("#count");
+        const emptyEl = $("#empty");
+        const todayLabel = $("#todayLabel");
+
+        // 날짜 라벨
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const dd = String(now.getDate()).padStart(2, "0");
+        const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+        todayLabel.textContent = `${yyyy}.${mm}.${dd} (${dayNames[now.getDay()]})`;
+
+        /** @type {{id:string, text:string, createdAt:number}[]} */
+        let todos = load();
+
+        function uid() {
+            return Math.random().toString(16).slice(2) + Date.now().toString(16);
+        }
+
+        function save() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+        }
+
+        function load() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function render() {
+            listEl.innerHTML = "";
+            countEl.textContent = String(todos.length);
+            emptyEl.style.display = (todos.length === 0) ? "block" : "none";
+
+            for (const t of todos) {
+                const li = document.createElement("li");
+                li.className = "item";
+                li.dataset.id = t.id;
+
+                const check = document.createElement("button");
+                check.className = "check";
+                check.type = "button";
+                check.title = "완료(체크하면 삭제)";
+                check.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 7L10 17l-5-5" stroke="white" stroke-opacity="0.9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        `;
+                check.addEventListener("click", () => removeTodo(t.id, li));
+
+                const text = document.createElement("div");
+                text.className = "text";
+                text.textContent = t.text;
+
+                li.appendChild(check);
+                li.appendChild(text);
+                listEl.appendChild(li);
+            }
+        }
+
+        function addTodo() {
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            todos.unshift({ id: uid(), text, createdAt: Date.now() });
+            inputEl.value = "";
+            save();
+            render();
+            inputEl.focus();
+        }
+
+        function removeTodo(id, li) {
+            // 애니메이션 후 실제 삭제
+            li.classList.add("removing");
+            li.addEventListener("animationend", () => {
+                todos = todos.filter(t => t.id !== id);
+                save();
+                render();
+            }, { once: true });
+        }
+
+        $("#addBtn").addEventListener("click", addTodo);
+        inputEl.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") addTodo();
+        });
+
+        $("#clearBtn").addEventListener("click", () => {
+            todos = [];
+            save();
+            render();
+            inputEl.focus();
+        });
+
+        render();
+    </script>
+</body>
+
+</html>
